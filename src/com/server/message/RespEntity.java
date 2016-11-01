@@ -1,7 +1,5 @@
 package com.server.message;
 
-import com.server.user.UserEntity;
-
 import java.util.List;
 
 /**

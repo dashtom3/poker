@@ -2,10 +2,8 @@ package com.server.websocket.server;
 import com.server.message.*;
 import com.server.sessionManager.SessionManager;
 import com.server.user.UserEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 

@@ -27,7 +27,7 @@ public class GameHandler extends MsdHandler {
             JSONObject jsonObject = new JSONObject(String.valueOf(AESUtil.decrypt(msgEntity.getData(),"")));
             switch ((int)msgEntity.getCmdCode()) {// 根据命令码对应找到对应处理方法
                 case CMDConstant.GAME_JOIN:
-                    List<Long> respUsers = new ArrayList<>();
+                    List<Long> respUsers = new ArrayList<Long>();
                     this.joinGame((Short) jsonObject.get("type"),userEntity,respUsers);
 
                     UserGameEntity userGameEntity = (UserGameEntity) userEntity;

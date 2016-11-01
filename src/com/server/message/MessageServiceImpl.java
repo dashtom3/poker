@@ -1,8 +1,8 @@
 //package com.server.message;
 //
-//import com.server.game.GameEntity;
-//import com.server.sessionManager.SessionManager;
-//import com.server.user.UserEntity;
+//import GameEntity;
+//import SessionManager;
+//import UserEntity;
 //import org.json.JSONException;
 //import org.json.JSONObject;
 //
