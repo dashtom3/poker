@@ -1,0 +1,66 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <base href="<%=basePath%>">
+    <title>My WebSocket</title>
+  </head>
+   
+  <body>
+    Welcome<br/>
+    <input id="text" type="text" /><button onclick="send()">Send</button>    <button onclick="closeWebSocket()">Close</button>
+    <div id="message">
+    </div>
+  </body>
+   
+  <script type="text/javascript">
+      var websocket = null;
+       
+      if('WebSocket' in window){
+          websocket = new WebSocket("ws://localhost:8080/WebSocketDemo/websocket");
+      }
+      else{
+          alert('Not support websocket')
+      }
+       
+      //Á¬½Ó·¢Éú´íÎóµÄ»Øµ÷·½·¨
+      websocket.onerror = function(){
+          setMessageInnerHTML("error");
+      };
+       
+      //Á¬½Ó³É¹¦½¨Á¢µÄ»Øµ÷·½·¨
+      websocket.onopen = function(event){
+          setMessageInnerHTML("open");
+      }
+       
+      //½ÓÊÕµ½ÏûÏ¢µÄ»Øµ÷·½·¨
+      websocket.onmessage = function(){
+          setMessageInnerHTML(event.data);
+      }
+       
+      //Á¬½Ó¹Ø±ÕµÄ»Øµ÷·½·¨
+      websocket.onclose = function(){
+          setMessageInnerHTML("close");
+      }
+       
+      //¼àÌý´°¿Ú¹Ø±ÕÊÂ¼þ£¬µ±´°¿Ú¹Ø±ÕÊ±£¬Ö÷¶¯È¥¹Ø±ÕwebsocketÁ¬½Ó£¬·ÀÖ¹Á¬½Ó»¹Ã»¶Ï¿ª¾Í¹Ø±Õ´°¿Ú£¬server¶Ë»áÅ×Òì³£¡£
+      window.onbeforeunload = function(){
+          websocket.close();
+      }
+       
+      //½«ÏûÏ¢ÏÔÊ¾ÔÚÍøÒ³ÉÏ
+      function setMessageInnerHTML(innerHTML){
+          document.getElementById('message').innerHTML += innerHTML + '<br/>';
+      }
+       
+      //¹Ø±ÕÁ¬½Ó
+      function closeWebSocket(){
+          websocket.close();
+      }
+       
+      //·¢ËÍÏûÏ¢
+      function send(){
+          var message = document.getElementById('text').value;
+          websocket.send(message);
+      }
+  </script>
+</html>

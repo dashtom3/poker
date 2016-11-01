@@ -1,0 +1,18 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="poker:war exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/poker_war_exploded</output-path>
+    <root id="root">
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="poker" />
+        </element>
+        <element id="directory" name="lib">
+          <element id="file-copy" path="$PROJECT_DIR$/../file/apache-tomcat-8.5.4/lib/websocket-api.jar" />
+          <element id="library" level="project" name="lib" />
+          <element id="library" level="project" name="Hibernate 3.6.10-3.6.10" />
+        </element>
+      </element>
+      <element id="javaee-facet-resources" facet="poker/web/Web" />
+    </root>
+  </artifact>
+</component>
