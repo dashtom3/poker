@@ -17,7 +17,8 @@ import com.cloopen.rest.sdk.CCPRestSmsSDK;
  * Created by tian on 16/9/27.
  */
 public class HttpUtil {
-    public String sendPost(String url, String param) {
+
+    public static String sendPost(String url, String param) {
         PrintWriter out = null;
         BufferedReader in = null;
         String result = "";
