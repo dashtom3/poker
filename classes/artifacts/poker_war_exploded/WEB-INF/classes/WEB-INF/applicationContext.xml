@@ -23,6 +23,7 @@
         <property name="annotatedClasses">
             <list>
                 <value>com.server.user.UserEntity</value>
+                <value>com.server.entity.product.ProductEntity</value>
             </list>
         </property>
 
