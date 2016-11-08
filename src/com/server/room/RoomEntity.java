@@ -6,6 +6,7 @@ import java.util.*;
 
 import static com.server.game.GameEntity.room;
 import static com.sun.tools.internal.xjc.reader.Ring.add;
+import static javafx.scene.input.KeyCode.T;
 
 /**
  * Created by tian on 16/10/10.
@@ -21,6 +22,7 @@ public class RoomEntity {
     private short MAXPLAYER = 6;
     private short type;//房间类型
     private List<Long> userList = new ArrayList<>();//广播用户列表
+    private boolean isNew = true;//是否是新房间
 
     public RoomEntity(short type){
         this.type = type;
@@ -65,7 +67,37 @@ public class RoomEntity {
         this.userList.add(userId);
     }
 
+    public void startGame(){
+        new Thread(new Runnable() {
+            boolean isDeleteRoom=false;
+            @Override
+            public void run() {
+                while (!isDeleteRoom){
+                    //每局游戏间隔5S
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
 
+                    //业务
+
+
+                    //房间所有人离开,则删除该房间
+                    if(playerNum==0)
+                        isDeleteRoom=true;
+                }
+            }
+        }).start();
+    }
+
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public void setNew(boolean aNew) {
+        isNew = aNew;
+    }
 
     public List<SeatEntity> getSeatEntities() {
         return seatEntities;

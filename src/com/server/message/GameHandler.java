@@ -122,6 +122,9 @@ public class GameHandler extends MsdHandler {
             roomEntity.addAudience(userEntity);
         //加入到广播列表
         roomEntity.addToUserList(userEntity.getId());
+        //若房间有2个人且是新房间,则启动游戏进程,否则该房间游戏进程已开启等待下一局就行
+        if(roomEntity.getPlayerNum()>1&&roomEntity.isNew()==true)
+            roomEntity.startGame();
     }
 
     //创建房间
@@ -132,21 +135,6 @@ public class GameHandler extends MsdHandler {
         return roomEntity;
     }
 
-
-
-
-
-//    //计时操作
-//    public void startTimer() {
-//        this.timer = new Timer();
-//        timer.schedule(new TimerTask() {
-//            public void run() {
-//                System.out.println("-------游戏玩家--------");
-//
-//            }
-//        }, 1500);
-//    }
-//
 //    //开始游戏
 //    public void startGame() {
 //        this.giveCard();
@@ -157,19 +145,7 @@ public class GameHandler extends MsdHandler {
 //        //TODO发送通知消息
 //
 //    }
-
-//    //玩家操作 type 0加筹码 1all-in 2跟 3让 4弃
-//    public void playerOperate(int type, int money) {
 //
-//    }
-//
-//
-//
-//
-//    //玩家加筹码
-//    public void add(){
-//
-//    }
 //    //发牌
 //    public void giveCard(){
 //        for(int i=0;i<seatEntities.size();i++){
@@ -190,4 +166,35 @@ public class GameHandler extends MsdHandler {
 //            }
 //        }
 //    }
+
+
+
+
+
+//    //计时操作
+//    public void startTimer() {
+//        this.timer = new Timer();
+//        timer.schedule(new TimerTask() {
+//            public void run() {
+//                System.out.println("-------游戏玩家--------");
+//
+//            }
+//        }, 1500);
+//    }
+//
+
+
+//    //玩家操作 type 0加筹码 1all-in 2跟 3让 4弃
+//    public void playerOperate(int type, int money) {
+//
+//    }
+//
+//
+//
+//
+//    //玩家加筹码
+//    public void add(){
+//
+//    }
+
 }
