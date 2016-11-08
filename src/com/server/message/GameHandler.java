@@ -8,9 +8,12 @@ import com.server.sessionManager.SessionManager;
 import com.server.user.UserEntity;
 import com.server.user.UserGameEntity;
 import com.server.util.AESUtil;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.json.JSONObject;
 
 import java.util.*;
+
+import static com.sun.tools.internal.xjc.reader.Ring.add;
 
 /**
  * Created by tian on 2016/10/19.
@@ -19,30 +22,60 @@ public class GameHandler extends MsdHandler {
 
 
     @Override
-    public void handleMsg(MsgEntity msgEntity, RespEntity respEntity) {
+    public RespEntity handleMsg(MsgEntity msgEntity) {
+        RespEntity respEntity=new RespEntity();
         UserEntity userEntity = SessionManager.getSession( msgEntity.getToken());
+        Boolean isSuccess;
+        List<Long> broadcastUserList=new ArrayList<>();
 
         //TODO message data 加密解密
         try {
             JSONObject jsonObject = new JSONObject(String.valueOf(AESUtil.decrypt(msgEntity.getData(),"")));
+            RoomEntity room = (RoomEntity)jsonObject.get("room");
             switch ((int)msgEntity.getCmdCode()) {// 根据命令码对应找到对应处理方法
                 case CMDConstant.GAME_JOIN:
-                    List<Long> respUsers = new ArrayList<Long>();
-                    this.joinGame((Short) jsonObject.get("type"),userEntity,respUsers);
-
-                    UserGameEntity userGameEntity = (UserGameEntity) userEntity;
-
+                    broadcastUserList = joinGame((Short) jsonObject.get("type"),userEntity);
                     respEntity.setCmdCode(CMDConstant.GAME_JOIN);
-                    respEntity.setData(new JSONObject(userGameEntity).toString());
-                    respEntity.setUserList(respUsers);
-
+                    respEntity.setData(userEntity.getUsername()+"join game success");
+                    respEntity.setUserList(broadcastUserList);
                     break;
                 case CMDConstant.GAME_SIT:
-
+                    isSuccess=room.sit(userEntity);
+                    respEntity.setCmdCode(CMDConstant.GAME_SIT);
+                    if(isSuccess){
+                        respEntity.setData(userEntity.getUsername()+"sit success");
+                        respEntity.setUserList(room.getUserList());
+                    }
+                    else {//sit失败则只通知自己
+                        respEntity.setData("sit fail");
+                        broadcastUserList.add(userEntity.getId());
+                        respEntity.setUserList(broadcastUserList);
+                    }
                     break;
                 case CMDConstant.GAME_STAND:
+                    isSuccess=room.standUp(userEntity);
+                    respEntity.setCmdCode(CMDConstant.GAME_STAND);
+                    if(isSuccess){
+                        respEntity.setData(userEntity.getUsername()+"standUp success");
+                        respEntity.setUserList(room.getUserList());
+                    }
+                    else {//失败则只通知自己
+                        respEntity.setData("standUp fail");
+                        broadcastUserList.add(userEntity.getId());
+                        respEntity.setUserList(broadcastUserList);
+                    }
                     break;
                 case CMDConstant.GAME_LEAVE:
+                    room.leaveRoom(userEntity);
+                    respEntity.setCmdCode(CMDConstant.GAME_LEAVE);
+                    respEntity.setData(userEntity.getUsername()+"leave success");
+                    respEntity.setUserList(room.getUserList());
+                    break;
+                case CMDConstant.GAME_CHANGE:
+                    room.leaveRoom(userEntity);
+                    respEntity.setCmdCode(CMDConstant.GAME_LEAVE);
+                    respEntity.setData(userEntity.getUsername()+"leave success");
+                    respEntity.setUserList(room.getUserList());
                     break;
                 case CMDConstant.GAME_START:
                     break;
@@ -62,62 +95,47 @@ public class GameHandler extends MsdHandler {
         }catch (Exception e){
             e.printStackTrace();
         }
+
+        return respEntity;
     }
-    //加入游戏
-    public synchronized void joinGame(short type, UserEntity user,List<Long> responers){
-        //匹配
-        RoomEntity roomEntity = null;
-        boolean gameState = false;
+
+    //判断是否有房间可用
+    public synchronized List<Long> joinGame(short type, UserEntity user){
+        //遍历所有房间,找到相应等级有座位且未开始游戏的房间,进入房间
+        RoomEntity currRoom = null;
         for(int i=0;i<GameEntity.room.size();i++){
-            if(GameEntity.room.get(i).getPlayerNum()<GameEntity.room.get(i).getMAXPLAYER() && type == GameEntity.room.get(i).getType()){
-                this.playerAdd(GameEntity.room.get(i),user);
-                gameState = true;
-                roomEntity = GameEntity.room.get(i);
-                break;
+            currRoom=GameEntity.room.get(i);
+            if(type == currRoom.getType() && currRoom.getPlayerNum()<currRoom.getMAXPLAYER() && currRoom.getState()==1){
+                addPlayerToRoom(currRoom,user);
+                return currRoom.getUserList();
             }
         }
-        if(gameState == false){
-            roomEntity = roomAdd(type,user);
-        }
-        responers = roomEntity.getUserList();
+
+        //否则创建新房间
+        currRoom = createRoom(type,user);
+        return currRoom.getUserList();
     }
-    //玩家加入
-    public synchronized void playerAdd(RoomEntity roomEntity,UserEntity userEntity){
-        if(roomEntity.getPlayerNum() < roomEntity.getMAXPLAYER()){
-            short playerNum = (short) (roomEntity.getPlayerNum() + 1);
-            roomEntity.setPlayerNum(playerNum);
-            roomEntity.getSeatEntities().add(new SeatEntity(userEntity, (short) 0));
-            //开始游戏
-            if(roomEntity.getState() == 1 && playerNum>1){
-                //startGame();
-            }
-        }else {
-            roomEntity.getAudience().add(userEntity);
-        }
-        roomEntity.getUserList().add(userEntity.getId());
+
+    //玩家进入房间
+    public void addPlayerToRoom(RoomEntity roomEntity,UserEntity userEntity){
+        if(!roomEntity.sit(userEntity))//有座位则成为玩家,否则成为观众
+            roomEntity.addAudience(userEntity);
+        //加入到广播列表
+        roomEntity.addToUserList(userEntity.getId());
     }
-//    //玩家坐下
-//    public synchronized boolean playerSit(){
-//        if(playerNum < MAXPLAYER ){
-//
-//        }
-//        return true;
-//    }
-//    //玩家站起
-//    public synchronized boolean playerStandUp(){
-//        return true;
-//    }
-//    //玩家离开
-//    public synchronized boolean playerLeave(){
-//        return true;
-//    }
+
     //创建房间
-    public synchronized RoomEntity roomAdd(short type,UserEntity userEntity){
+    public RoomEntity createRoom(short type,UserEntity userEntity){
         RoomEntity roomEntity = new RoomEntity(type);
-        this.playerAdd(roomEntity,userEntity);
+        addPlayerToRoom(roomEntity,userEntity);
         GameEntity.room.add(roomEntity);
         return roomEntity;
     }
+
+
+
+
+
 //    //计时操作
 //    public void startTimer() {
 //        this.timer = new Timer();

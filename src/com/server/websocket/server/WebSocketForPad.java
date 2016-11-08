@@ -69,12 +69,12 @@ public class WebSocketForPad {
 //        }
 
         MsgEntity msgEntity = new MsgEntity(message);
-        RespEntity respEntity = new RespEntity();
-        msgHandler.handleMsg(msgEntity,respEntity);
+        RespEntity respEntity=msgHandler.handleMsg(msgEntity);
+
         List<Long> userList = respEntity.getUserList();
         for(int i=0;i<userList.size();i++){
-            try {
-                sessionMap.get(userList.get(i)).getBasicRemote().sendText(message);
+            try {//广播
+                sessionMap.get(userList.get(i)).getBasicRemote().sendText(respEntity.getData());
             }catch (IOException e){
                 e.printStackTrace();
                 continue;

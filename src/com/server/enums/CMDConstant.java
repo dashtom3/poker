@@ -15,5 +15,6 @@ public interface CMDConstant {
             GAME_ROUND1 = 106,
             GAME_ROUND2 =107,
             GAME_ROUND3 = 108,
-            GAME_END = 109;
+            GAME_END = 109,
+            GAME_CHANGE = 110;
 }
