@@ -70,15 +70,12 @@ public class WebSocketForPad {
 
         MsgEntity msgEntity = new MsgEntity(message);
         RespEntity respEntity=msgHandler.handleMsg(msgEntity);
-
         List<Long> userList = respEntity.getUserList();
-        for(int i=0;i<userList.size();i++){
-            try {//广播
-                sessionMap.get(userList.get(i)).getBasicRemote().sendText(respEntity.getData());
-            }catch (IOException e){
-                e.printStackTrace();
-                continue;
-            }
+
+        try {
+            broadcastMessage(userList,respEntity.getData());
+        }catch (IOException e){
+            e.printStackTrace();
         }
     }
     
@@ -90,9 +87,15 @@ public class WebSocketForPad {
     }
      
 
-    public void sendMessage(String message) throws IOException{
-        this.session.getBasicRemote().sendText(message);
+    public static void sendMessage(Long userId, String message) throws IOException{
+        sessionMap.get(userId).getBasicRemote().sendText(message);
+        //this.session.getBasicRemote().sendText(message);
         //this.session.getAsyncRemote().sendText(message);
+    }
+
+    public static void broadcastMessage(List<Long> userList, String message) throws IOException{
+        for(Long userId:userList)
+            sendMessage(userId,message);
     }
 
 //    public static void sendMessageTo(String message,String toList) {

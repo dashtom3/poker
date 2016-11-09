@@ -9,6 +9,6 @@ import java.util.List;
  * Created by tian on 16/10/10.
  */
 public class GameEntity {
-    public static List<RoomEntity> room  = new ArrayList<>();
+    public static List<RoomEntity> roomList  = new ArrayList<>();
 
 }

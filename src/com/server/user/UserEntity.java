@@ -24,6 +24,7 @@ public class UserEntity {
     private Integer level;
     private Date registerDate;
     private Integer type;//权限
+    public int roomIndex;
 
 
     private String currentScore;
