@@ -10,18 +10,19 @@ import java.util.*;
 public class RoomEntity {
     private LinkedList<SeatEntity> seatEntities = new LinkedList<>();
     private List<UserEntity> audience = new ArrayList<>();
-    private short firPlayer = 0;//需要进行操作的玩家
+    private short firPlayer = 0;//当前需要进行操作的玩家
     private short state = 1;//游戏状态 0:进行中 1:未开始
     private List<Integer> card = new ArrayList<>();//记录一副牌
-    private Timer timer;
     private short playerNum = 0;
     private short MAXPLAYER = 6;
-    private short type;//房间类型(初始积分)
+    private short type;//房间类型(初始筹码)
     private List<Integer> userList = new ArrayList<>();//广播用户列表
     private boolean isNew = true;//是否是新房间
     private int index;//房间号
-    public int round=0;//游戏进行到第几轮
-    public int[] publicCard=new int[5];
+    public int round=1;//游戏进行到第几轮
+    public int[] publicCard=new int[5];//记录5张公共牌
+    public int allStake;//赌池总筹码
+    public int bigBlind;
 
     public RoomEntity(short type){
         this.type = type;
@@ -107,14 +108,6 @@ public class RoomEntity {
 
     public void setCard(List<Integer> card) {
         this.card = card;
-    }
-
-    public Timer getTimer() {
-        return timer;
-    }
-
-    public void setTimer(Timer timer) {
-        this.timer = timer;
     }
 
     public short getPlayerNum() {

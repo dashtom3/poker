@@ -16,4 +16,8 @@ public class NavigationController {
     public String homePage(){
         return "/a";
     }
+//    @RequestMapping(value="/test")
+//    public String testPage(){
+//        return "/a";
+//    }
 }

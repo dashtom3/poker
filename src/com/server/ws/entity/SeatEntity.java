@@ -8,14 +8,24 @@ import com.server.http.entity.UserEntity;
 public class SeatEntity {
     public short num;
     public UserEntity userEntity;
-    public short state;//0:空闲 1:有人 2:弃牌
-    public int[] pay = {0,0,0,0};//每轮金钱
+    public int score;//在该房间的积分
+    public short state;//0:空闲 1:有人 2:弃牌 3.让牌
+    public int[] pay = {0,0,0,0};//每轮下注
     public int card1;
-    public int card2;
-    public int cardType;//9种类型
+    public int card2;//两张手牌
+    public int cardType;//牌型,10种类型
+    public String cardString="";//具体牌的大小,如1302表示K和2
+
     public SeatEntity(UserEntity userEntity, short state){
         this.userEntity = userEntity;
         this.state = state;
+    }
+
+    public String geneCardString(int num){
+        if(num>9)
+            return this.cardString+num;
+        else
+            return this.cardString+0+num;
     }
 
 }

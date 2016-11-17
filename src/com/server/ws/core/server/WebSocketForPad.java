@@ -1,8 +1,7 @@
 package com.server.ws.core.server;
 import com.server.common.sessionManager.SessionManager;
 import com.server.http.entity.UserEntity;
-import com.server.ws.handler.GameHandler;
-import com.server.ws.handler.MsdHandler;
+import com.server.ws.handler.MsgHandler;
 import com.server.ws.entity.MsgEntity;
 
 import java.io.IOException;
@@ -12,8 +11,6 @@ import java.util.List;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-
-
 
  
 @ServerEndpoint("/websocket/{token}")
@@ -25,9 +22,7 @@ public class WebSocketForPad {
 
     private static HashMap<Integer,Session>  sessionMap = new HashMap<>();
 
-    private String id;
-
-    private MsdHandler msgHandler = new GameHandler();
+    private MsgHandler msgHandler = new MsgHandler();
 
 
     @OnOpen
@@ -107,12 +102,4 @@ public class WebSocketForPad {
         WebSocketForPad.onlineCount--;
     }
 
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-    
 }
