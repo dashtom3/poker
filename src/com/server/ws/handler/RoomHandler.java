@@ -1,5 +1,6 @@
 package com.server.ws.handler;
 
+import com.server.common.util.JSONUtil;
 import com.server.http.entity.UserEntity;
 import com.server.ws.core.server.WebSocketForPad;
 import com.server.ws.entity.RoomEntity;
@@ -7,6 +8,7 @@ import com.server.ws.entity.SeatEntity;
 import java.io.IOException;
 
 import static com.server.ws.entity.GameEntity.roomList;
+import static sun.misc.VM.getState;
 
 /**
  * Created by joseph on 16/11/9.
@@ -38,12 +40,28 @@ public class RoomHandler {
         userEntity.setRoomIndex(index);
         //加入到广播列表
         roomEntity.addToUserList(userEntity.getId());
-        //向该房间所有用户广播
-        WebSocketForPad.broadcastMessage(roomEntity.getUserList(),userEntity.getUsername()+" join room success,room index:"+roomEntity.getIndex());
         //SIT OR AUDIENCE
-        if(!sit(userEntity))//有座位则成为玩家,否则成为观众
+        int limitScore=roomEntity.getType()*100;
+        if(userEntity.getScore()>=limitScore&&roomEntity.getState()==1 && roomEntity.getPlayerNum()< roomEntity.getMAXPLAYER()){
+            //有座位且积分大于最低要求则成为玩家,进入房间扣除相应积分
+            sit(userEntity);
+            userEntity.setScore(userEntity.getScore()-limitScore);
+            for(SeatEntity seat:roomEntity.getSeatEntities())
+                if(seat.userEntity.getId()==userEntity.getId()){
+                    seat.score=limitScore;
+                    WebSocketForPad.broadcastMessage(roomEntity.getUserList(),userEntity.getUsername()+" join game,room: "+roomEntity.getIndex());
+                    break;
+                }
+        }
+        else{//否则成为观众
             roomEntity.addAudience(userEntity);
-        System.out.println("******"+userEntity.getUsername()+" join room success,room index:"+roomEntity.getIndex());
+            WebSocketForPad.broadcastMessage(roomEntity.getUserList(),userEntity.getUsername()+" join audience,room: "+roomEntity.getIndex());
+        }
+        //向新加入玩家通知所有老玩家信息
+        String info= JSONUtil.objectMapper.writeValueAsString(roomEntity.getSeatEntities());
+        WebSocketForPad.sendMessage(userEntity.getId(),info);
+
+
         //若房间有2个人且是新房间,则启动游戏进程,否则该房间游戏进程已开启等待下一局就行
         if(roomEntity.getPlayerNum()>1&&roomEntity.isNew()==true)
             new Thread(new Runnable() {
@@ -104,6 +122,12 @@ public class RoomHandler {
     public synchronized void leaveRoom(UserEntity user) throws IOException {
         int roomIndex=user.getRoomIndex();
         RoomEntity room = roomList.get(roomIndex);
+        for(SeatEntity seat:room.getSeatEntities())//离场退还积分
+            if(seat.userEntity.getId()==user.getId()){
+                user.setScore(user.getScore()+seat.score);
+                WebSocketForPad.sendMessage(user.getId(),"退回积分:"+seat.score);
+                break;
+            }
         standUp(user);//若是玩家先站起变成观众
         room.deleteAudience(user);
         room.deleteUserList(user.getId());

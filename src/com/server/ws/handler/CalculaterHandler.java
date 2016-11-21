@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.StreamHandler;
 
 /**
  * Created by joseph on 16/11/16.
@@ -220,7 +219,7 @@ public class CalculaterHandler {
             }
         }
 
-        //3.扣除积分
+        //3.赢取积分
         int winStake=room.allStake/winnerList.size();//每个赢家赢的积分
         String winName="";
         //赢家赢取所有积分

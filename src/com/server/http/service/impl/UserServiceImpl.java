@@ -35,14 +35,19 @@ public class UserServiceImpl implements UserService {
         if(!userDao.deleteUser(id)) {
             dataWrapper.setErrorCode(ErrorCodeEnum.Error);
         }
+
         return dataWrapper;
     }
 
     @Override
-    public DataWrapper<Void> updateUser(UserEntity user) {
-        DataWrapper<Void> dataWrapper = new DataWrapper<Void>();
+    public DataWrapper<UserEntity> updateUser(UserEntity user) {
+        DataWrapper<UserEntity> dataWrapper = new DataWrapper<UserEntity>();
         if(!userDao.updateUser(user)) {
             dataWrapper.setErrorCode(ErrorCodeEnum.Error);
+        }
+        else {
+            dataWrapper.setData(user);
+            dataWrapper.setErrorCode(ErrorCodeEnum.No_Error);
         }
         return dataWrapper;
     }
@@ -134,29 +139,46 @@ public class UserServiceImpl implements UserService {
         if(user != null){
             if(user.getPassword().equals(MD5Util.getMD5Password(oldPWD))){
                 userDao.updateUserPassword(user.getId(),MD5Util.getMD5Password(newPWD));
+                dataWrapper.setErrorCode(ErrorCodeEnum.No_Error);
             }
+            else
+                dataWrapper.setErrorCode(ErrorCodeEnum.Password_error);
         }
-        dataWrapper.setErrorCode(ErrorCodeEnum.Error);
+        else
+            dataWrapper.setErrorCode(ErrorCodeEnum.Username_NOT_Exist);
+
         return dataWrapper;
     }
 
     @Override
     public DataWrapper<Void> forgetPWD(String username,String password,String code) {
         DataWrapper<Void> dataWrapper = new DataWrapper<>();
-        if(VerifyCodeManager.getPhoneCode(username) != null){
-            if(VerifyCodeManager.getPhoneCode(username).equals(code)){
-                int userId = userDao.getUserByUsername(username).getId();
-                userDao.updateUserPassword(userId,MD5Util.getMD5Password(code));
-
-                VerifyCodeManager.removePhoneCodeByPhoneNum(username);
-
-            }else{
-                dataWrapper.setErrorCode(ErrorCodeEnum.Error);
-            }
-        }else{
-            dataWrapper.setErrorCode(ErrorCodeEnum.Verify_Code_Error);
+        //验证码服务
+        String serverCode=VerifyCodeManager.getPhoneCode(username);
+        if(serverCode.equals("noCode")){
+            dataWrapper.setErrorCode(ErrorCodeEnum.Verify_Code_notExist);
         }
+        else if(serverCode.equals("overdue")){
+            dataWrapper.setErrorCode(ErrorCodeEnum.Verify_Code_5min);
+        }
+        else if(serverCode.equals(code)){
+            int userId = userDao.getUserByUsername(username).getId();
+            userDao.updateUserPassword(userId,MD5Util.getMD5Password(code));
+            VerifyCodeManager.removePhoneCodeByPhoneNum(username);
+        }
+
         return dataWrapper;
+    }
+
+    @Override
+    public DataWrapper<Void> addFriends(int userId, String friend) {
+        DataWrapper<Void> ret=new DataWrapper<>();
+        if(userDao.updateUserFriends(userId,friend))
+            ret.setErrorCode(ErrorCodeEnum.No_Error);
+        else
+            ret.setErrorCode(ErrorCodeEnum.Error);
+
+        return ret;
     }
 
     @Override

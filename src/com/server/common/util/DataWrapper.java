@@ -92,7 +92,7 @@ public class DataWrapper<T>  {
     public String toString() {
         return	"Code:" + this.callStatus + "\n" +
                 "Error Code:" + this.errorCode+ "\n"+
-                "Data:"+this.data+"\n";
+                "Data:"+this.data.toString()+"\n";
 //                "Page :" + this.currentPage + "\n" +
 //                "Total Page :" + this.totalPage + "\n" +
 //                "Num per Page:" + this.numberPerPage + "\n" +

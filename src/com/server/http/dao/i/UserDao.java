@@ -18,4 +18,5 @@ public interface UserDao {
     DataWrapper<List<UserEntity>> getUserList();
     UserEntity getUserByUsername(String username);
     boolean updateUserPassword(int userId,String password);
+    boolean updateUserFriends(int userId,String friends);
 }

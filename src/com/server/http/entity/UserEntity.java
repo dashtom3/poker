@@ -13,7 +13,7 @@ public class UserEntity {
     private String username;
     private String password;
     private String realname;
-    private String score;
+    private Integer score;
     private Integer allnum;
     private Integer winnum;
     private Integer gatenum;
@@ -24,6 +24,7 @@ public class UserEntity {
     private String pic;
     private Integer roomIndex;
     private Serializable registerDate;
+    private String friends;
 
     @Id
     @Column(name = "id")
@@ -67,11 +68,11 @@ public class UserEntity {
 
     @Basic
     @Column(name = "score")
-    public String getScore() {
+    public Integer getScore() {
         return score;
     }
 
-    public void setScore(String score) {
+    public void setScore(Integer score) {
         this.score = score;
     }
 
@@ -219,5 +220,15 @@ public class UserEntity {
         result = 31 * result + (roomIndex != null ? roomIndex.hashCode() : 0);
         result = 31 * result + (registerDate != null ? registerDate.hashCode() : 0);
         return result;
+    }
+
+    @Basic
+    @Column(name = "friends")
+    public String getFriends() {
+        return friends;
+    }
+
+    public void setFriends(String friends) {
+        this.friends = friends;
     }
 }

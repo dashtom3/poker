@@ -51,13 +51,27 @@ public class UserDaoImpl extends BaseDao<UserEntity> implements UserDao {
     @Override
     public boolean updateUserPassword(int userId, String password) {
 
-        String sql = "update c_user u set u.password="+password+" where u.id="+userId;
+        String sql = "update card.user u set u.password="+password+" where u.id="+userId;
         Session session = getSession();
         Query query = session.createSQLQuery(sql);
         try {
             query.executeUpdate();
         }catch(Exception e){
             e.printStackTrace();
+        }
+        return true;
+    }
+
+    @Override
+    public boolean updateUserFriends(int userId, String friends) {
+        String sql = "update card.user u set u.friends="+friends+" where u.id="+userId;
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql);
+        try {
+            query.executeUpdate();
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
         }
         return true;
     }

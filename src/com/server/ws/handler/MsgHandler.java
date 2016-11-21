@@ -51,6 +51,9 @@ public class MsgHandler {
                 case CMDConstant.GAME_SKIP:
                     gameHandler.skip(userEntity);
                     break;
+                case CMDConstant.GAME_ALLIN:
+//                    gameHandler.allin(userEntity);
+                    break;
                 default:
                     System.out.println("找不到对应的命令码");
             }

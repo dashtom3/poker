@@ -1,14 +1,12 @@
 package com.server.common.util;
 
-import org.json.JSONObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Created by tian on 2016/10/26.
+ * Created by ma on 2016/11/21.
  */
-public class JSONUtil<T> {
-    public String entityToStr(T t){
-        JSONObject jsonObject = new JSONObject(t);
-        return jsonObject.toString();
-    }
+public class JSONUtil{
+
+    public static ObjectMapper objectMapper=new ObjectMapper();
 
 }

@@ -15,5 +15,5 @@ public interface CMDConstant {
             GAME_STAKE = 106,
             GAME_ABANDON =107,
             GAME_SKIP = 108,
-            GAME_END = 109;
+            GAME_ALLIN = 109;
 }

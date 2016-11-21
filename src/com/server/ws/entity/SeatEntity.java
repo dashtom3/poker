@@ -9,7 +9,7 @@ public class SeatEntity {
     public short num;
     public UserEntity userEntity;
     public int score;//在该房间的积分
-    public short state;//0:空闲 1:有人 2:弃牌 3.让牌
+    public short state;//0:空闲 1:下注 2:弃牌 3.让牌 4.allin
     public int[] pay = {0,0,0,0};//每轮下注
     public int card1;
     public int card2;//两张手牌

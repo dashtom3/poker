@@ -13,16 +13,17 @@ public class RoomEntity {
     private short firPlayer = 0;//当前需要进行操作的玩家
     private short state = 1;//游戏状态 0:进行中 1:未开始
     private List<Integer> card = new ArrayList<>();//记录一副牌
-    private short playerNum = 0;
+    private short playerNum = 0;//玩家数
     private short MAXPLAYER = 6;
-    private short type;//房间类型(初始筹码)
+    private short type;//房间类型(初始筹码),共6种(1,5,10,50,100,500)
     private List<Integer> userList = new ArrayList<>();//广播用户列表
     private boolean isNew = true;//是否是新房间
     private int index;//房间号
     public int round=1;//游戏进行到第几轮
     public int[] publicCard=new int[5];//记录5张公共牌
-    public int allStake;//赌池总筹码
+    public int allStake=0;//赌池总筹码
     public int bigBlind;
+    public int maxStake;//该轮最大注
 
     public RoomEntity(short type){
         this.type = type;
