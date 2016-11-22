@@ -17,10 +17,9 @@ public class MsgHandler {
         UserEntity userEntity = SessionManager.getSession(msgEntity.getToken());
         short type;
 
-        //TODO message data 加密解密
         try {
+            //TODO message data 加密解密
             //JSONObject jsonObject = new JSONObject(String.valueOf(AESUtil.decrypt(msgEntity.getData(),"")));
-            JSONObject jsonObject = new JSONObject();
 
             switch (msgEntity.getCmdCode()) {// 根据命令码对应找到对应处理方法
                 case CMDConstant.GAME_JOIN:
@@ -50,9 +49,6 @@ public class MsgHandler {
                     break;
                 case CMDConstant.GAME_SKIP:
                     gameHandler.skip(userEntity);
-                    break;
-                case CMDConstant.GAME_ALLIN:
-//                    gameHandler.allin(userEntity);
                     break;
                 default:
                     System.out.println("找不到对应的命令码");

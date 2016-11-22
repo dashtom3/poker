@@ -6,11 +6,11 @@ import com.server.http.entity.UserEntity;
  * Created by tian on 16/10/11.
  */
 public class SeatEntity {
-    public short num;
     public UserEntity userEntity;
-    public int score;//在该房间的积分
+    public int score;//带入该房间的总积分
+    public int stake;//本局游戏已出的积分
     public short state;//0:空闲 1:下注 2:弃牌 3.让牌 4.allin
-    public int[] pay = {0,0,0,0};//每轮下注
+    public int[] pay = {0,0,0,0};//每轮下注筹码
     public int card1;
     public int card2;//两张手牌
     public int cardType;//牌型,10种类型

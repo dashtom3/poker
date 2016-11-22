@@ -69,9 +69,13 @@ public class UserServiceImpl implements UserService {
                 dataWrapper.setToken(token);
                 return dataWrapper;
             }
-            dataWrapper.setErrorCode(ErrorCodeEnum.Login_Error);
+            else {
+                dataWrapper.setErrorCode(ErrorCodeEnum.Login_Error);
+            }
         }
-        dataWrapper.setErrorCode(ErrorCodeEnum.Username_NOT_Exist);
+        else {
+            dataWrapper.setErrorCode(ErrorCodeEnum.Username_NOT_Exist);
+        }
         return dataWrapper;
     }
 

@@ -8,7 +8,6 @@ import com.server.ws.entity.SeatEntity;
 import java.io.IOException;
 
 import static com.server.ws.entity.GameEntity.roomList;
-import static sun.misc.VM.getState;
 
 /**
  * Created by joseph on 16/11/9.
@@ -16,6 +15,7 @@ import static sun.misc.VM.getState;
 public class RoomHandler {
 
     private GameHandler gameHandler=new GameHandler();
+
     //判断是否有房间可用
     public synchronized void joinGame(short type, UserEntity user) throws IOException {
         //遍历所有房间,找到相应等级有座位且未开始游戏的房间,进入房间
@@ -31,38 +31,50 @@ public class RoomHandler {
         }
         //否则创建新房间
         if(!isFindRoom)
-            currRoom = createRoom(type,user);
+            createRoom(type,user);
     }
 
     //玩家进入房间
     public void addPlayerToRoom(RoomEntity roomEntity,UserEntity userEntity) throws IOException {
         final int index = roomList.indexOf(roomEntity);
         userEntity.setRoomIndex(index);
-        //加入到广播列表
+        //1.加入到广播列表
         roomEntity.addToUserList(userEntity.getId());
-        //SIT OR AUDIENCE
+        //2.有座位且积分大于最低要求则成为玩家,进入房间扣除相应积分
         int limitScore=roomEntity.getType()*100;
         if(userEntity.getScore()>=limitScore&&roomEntity.getState()==1 && roomEntity.getPlayerNum()< roomEntity.getMAXPLAYER()){
-            //有座位且积分大于最低要求则成为玩家,进入房间扣除相应积分
-            sit(userEntity);
-            userEntity.setScore(userEntity.getScore()-limitScore);
-            for(SeatEntity seat:roomEntity.getSeatEntities())
-                if(seat.userEntity.getId()==userEntity.getId()){
-                    seat.score=limitScore;
-                    WebSocketForPad.broadcastMessage(roomEntity.getUserList(),userEntity.getUsername()+" join game,room: "+roomEntity.getIndex());
-                    break;
+            if(sit(userEntity)){
+                if(roomEntity.getType()==6){//无上限房间:所有积分带入房间
+                    limitScore=userEntity.getScore();
+                    userEntity.setScore(0);
                 }
+                else {//普通房间
+                    userEntity.setScore(userEntity.getScore()-limitScore);
+                }
+                for(SeatEntity seat:roomEntity.getSeatEntities())
+                    if(seat.userEntity.getId()==userEntity.getId()){
+                        seat.score=limitScore;
+                        WebSocketForPad.broadcastMessage(roomEntity.getUserList(),userEntity.getUsername()+" join game,room: "+roomEntity.getIndex());
+                        break;
+                    }
+            }
+            else {//坐下失败成为观众
+                roomEntity.addAudience(userEntity);
+                WebSocketForPad.broadcastMessage(roomEntity.getUserList(),userEntity.getUsername()+" join audience,room: "+roomEntity.getIndex());
+            }
         }
-        else{//否则成为观众
+        //3.否则成为观众
+        else{
             roomEntity.addAudience(userEntity);
             WebSocketForPad.broadcastMessage(roomEntity.getUserList(),userEntity.getUsername()+" join audience,room: "+roomEntity.getIndex());
         }
-        //向新加入玩家通知所有老玩家信息
+        //4.向新加入玩家通知所有老玩家信息,向所有老玩家广播新加入玩家信息
         String info= JSONUtil.objectMapper.writeValueAsString(roomEntity.getSeatEntities());
         WebSocketForPad.sendMessage(userEntity.getId(),info);
+        info= JSONUtil.objectMapper.writeValueAsString(userEntity);
+        WebSocketForPad.broadcastMessage(roomEntity.getUserList(),info);
 
-
-        //若房间有2个人且是新房间,则启动游戏进程,否则该房间游戏进程已开启等待下一局就行
+        //5.若房间有2个人且是新房间,则启动游戏进程,否则该房间游戏进程已开启等待下一局就行
         if(roomEntity.getPlayerNum()>1&&roomEntity.isNew()==true)
             new Thread(new Runnable() {
                 @Override
@@ -79,13 +91,12 @@ public class RoomHandler {
     }
 
     //创建房间
-    public RoomEntity createRoom(short type,UserEntity userEntity) throws IOException {
+    public void createRoom(short type,UserEntity userEntity) throws IOException {
         RoomEntity roomEntity = new RoomEntity(type);
         roomList.add(roomEntity);
         roomEntity.setIndex(roomList.indexOf(roomEntity));
         System.out.println("******"+userEntity.getUsername()+"  create room success,room index:"+roomEntity.getIndex());
         addPlayerToRoom(roomEntity,userEntity);
-        return roomEntity;
     }
 
     //玩家坐下:若房间有空闲座位且游戏未开始,可以坐下

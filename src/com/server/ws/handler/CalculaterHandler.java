@@ -3,17 +3,21 @@ package com.server.ws.handler;
 import com.server.ws.core.server.WebSocketForPad;
 import com.server.ws.entity.RoomEntity;
 import com.server.ws.entity.SeatEntity;
+import com.sun.xml.internal.bind.v2.TODO;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.sun.tools.doclint.Entity.ge;
+
 /**
  * Created by joseph on 16/11/16.
  */
 //计算赢家,扣除积分
 public class CalculaterHandler {
+    //计算牌型,找出赢家并相应处理筹码
     public void calculate(RoomEntity room) throws IOException {
         //花色数组,大小数组
         int[] num={0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -194,20 +198,31 @@ public class CalculaterHandler {
         }
 
         //2.根据牌型找出赢家,若最大牌型有2个以上玩家则继续判断📒
+        List<SeatEntity> winnerList=getWinnerList(room.getSeatEntities());
+
+        //3.积分赢取与扣除
+        calculateScore(room,winnerList);
+    }
+
+    //根据牌型找出赢家
+    public List<SeatEntity> getWinnerList(LinkedList<SeatEntity> allSeats){
         int maxCardType=1;
         LinkedList<SeatEntity> candidateWinner = new LinkedList<>();
         List<SeatEntity> winnerList=new ArrayList<>();
-        for(SeatEntity seat:room.getSeatEntities()){//找出最大牌型
+        //1.找出最大牌型
+        for(SeatEntity seat:allSeats){
             if(maxCardType<seat.cardType)
                 maxCardType=seat.cardType;
         }
-        for(SeatEntity seat:room.getSeatEntities()){//找出所有最大牌型的玩家
+        //2.找出所有最大牌型的玩家
+        for(SeatEntity seat:allSeats){
             if(maxCardType==seat.cardType)
                 candidateWinner.add(seat);
         }
-        if(candidateWinner.size()==1||maxCardType==10)//最大牌型玩家只有一个或皇家同花顺则直接获胜
+        //3.最大牌型玩家只有一个或皇家同花顺则直接返回
+        if(candidateWinner.size()==1||maxCardType==10)
             winnerList=candidateWinner;
-        else{                                         //否则继续比较
+        else{//否则继续比较
             String maxCardString=candidateWinner.get(0).cardString;
             for(SeatEntity seat:candidateWinner){//找出最大牌
                 if(seat.cardString.compareTo(maxCardString)>=0)
@@ -218,17 +233,52 @@ public class CalculaterHandler {
                     winnerList.add(seat);
             }
         }
+        return winnerList;
+    }
 
-        //3.赢取积分
-        int winStake=room.allStake/winnerList.size();//每个赢家赢的积分
-        String winName="";
-        //赢家赢取所有积分
-        for(SeatEntity winner:winnerList){
-            winner.score=winner.score+winStake;
-            winName=winName+winner.userEntity.getUsername()+";";
-            WebSocketForPad.sendMessage(winner.userEntity.getId(),"恭喜你获胜!您已赢取"+winStake+"积分");
+    //积分赢取与扣除
+    public void calculateScore(RoomEntity room,List<SeatEntity> winnerList) throws IOException {
+        int winStake=0;
+        if(winnerList.get(0).state==4){//all-in玩家赢
+            //TODO
+            SeatEntity allinWinner=winnerList.get(0);
+            int allinStake=allinWinner.stake;
+            //1.扣除其他玩家相应all-in积分
+            for(SeatEntity currSeat:room.getSeatEntities()){
+                if(currSeat.stake>=allinStake){//该玩家筹码大于all-in量,则赢取相应all-in值筹码
+                    allinWinner.score=allinWinner.score+allinStake;
+                    currSeat.stake=currSeat.stake-allinStake;//记录该局筹码数,防止第二大玩家仍为all-in
+                    room.allStake=room.allStake-allinStake;
+                    winStake=winStake+allinStake;
+                }
+                else {//该玩家筹码小于all-in量,则全部赢取
+                    allinWinner.score=allinWinner.score+currSeat.stake;
+                    currSeat.stake=0;
+                    room.allStake=room.allStake-currSeat.stake;
+                    winStake=winStake+currSeat.stake;
+                }
+            }
+            WebSocketForPad.broadcastMessage(room.getUserList(),"玩家"+allinWinner.userEntity.getUsername()+"all-in获胜!");
+            WebSocketForPad.sendMessage(allinWinner.userEntity.getId(),"恭喜你all-in获胜!您已赢取"+winStake+"积分");
+            //2.all-in玩家未赢取全部筹码,找到第二大玩家
+            if(room.allStake!=0){
+                LinkedList<SeatEntity> allSeats=room.getSeatEntities();
+                allSeats.remove(allinWinner);//得到除去已获胜玩家的所有玩家座位集合📒
+                List<SeatEntity> secondWinnerList=getWinnerList(allSeats);//找出第二大的玩家
+                calculateScore(room,secondWinnerList);//递归继续处理积分
+            }
         }
-        WebSocketForPad.broadcastMessage(room.getUserList(),"玩家"+winName+"获胜");
+        else {//正常玩家赢
+            winStake=room.allStake/winnerList.size();//每个赢家赢的积分
+            String winName="";
+            //赢家赢取所有积分
+            for(SeatEntity winner:winnerList){
+                winner.score=winner.score+winStake;
+                winName=winName+winner.userEntity.getUsername()+";";
+                WebSocketForPad.sendMessage(winner.userEntity.getId(),"恭喜你获胜!您已赢取"+winStake+"积分");
+            }
+            WebSocketForPad.broadcastMessage(room.getUserList(),"玩家"+winName+"获胜");
+        }
     }
 
     //是否同花
